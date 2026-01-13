@@ -1,5 +1,5 @@
 import { createContext, useState, useCallback, useEffect } from 'react';
-import axios from 'axios';
+import axios from '../utils/axiosConfig';
 
 export const ProductContext = createContext();
 
@@ -114,6 +114,15 @@ export const ProductProvider = ({ children }) => {
       ));
       return updated;
     } catch (err) {
+      // If product not found on server (404), still update locally
+      if (err.response && err.response.status === 404) {
+        console.warn(`Product ${id} not found on server, updating locally only`);
+        const updatedProduct = { id, ...updatedData };
+        setProducts(products.map(product =>
+          product.id === id ? { ...product, ...updatedProduct } : product
+        ));
+        return updatedProduct;
+      }
       setError(err.message);
       throw err;
     }
@@ -126,6 +135,12 @@ export const ProductProvider = ({ children }) => {
       // Remove from local state for immediate UI update
       setProducts(products.filter(product => product.id !== id));
     } catch (err) {
+      // If product not found on server (404), still delete locally
+      if (err.response && err.response.status === 404) {
+        console.warn(`Product ${id} not found on server, deleting locally only`);
+        setProducts(products.filter(product => product.id !== id));
+        return;
+      }
       setError(err.message);
       throw err;
     }

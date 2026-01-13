@@ -1,4 +1,5 @@
 import { createContext, useState, useEffect } from 'react';
+import { authAPI } from '../utils/api';
 
 export const AuthContext = createContext();
 
@@ -8,14 +9,34 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(null);
 
   useEffect(() => {
-    // Check if user is already logged in
-    const savedUser = localStorage.getItem('user');
-    const savedToken = localStorage.getItem('token');
-    if (savedUser && savedToken) {
-      setUser(JSON.parse(savedUser));
-      setToken(savedToken);
-    }
-    setLoading(false);
+    // Check if user is already logged in and verify token
+    const initializeAuth = async () => {
+      const savedUser = localStorage.getItem('user');
+      const savedToken = localStorage.getItem('token');
+      
+      if (savedUser && savedToken) {
+        try {
+          setUser(JSON.parse(savedUser));
+          setToken(savedToken);
+          
+          // Optionally verify token with API (if using real backend)
+          // For DummyJSON, we'll trust the stored token
+          // Uncomment below for real API verification:
+          // const userData = await authAPI.getCurrentUser();
+          // setUser(userData);
+        } catch (error) {
+          // Token is invalid, clear auth data
+          console.error('Token verification failed:', error);
+          localStorage.removeItem('user');
+          localStorage.removeItem('token');
+          setUser(null);
+          setToken(null);
+        }
+      }
+      setLoading(false);
+    };
+
+    initializeAuth();
   }, []);
 
   const login = (userData, authToken) => {

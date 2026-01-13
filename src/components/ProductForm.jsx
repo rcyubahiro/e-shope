@@ -31,7 +31,13 @@ export default function ProductForm({ product, onSubmit, onCancel }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit(formData);
+    // Convert price and rating to numbers
+    const submitData = {
+      ...formData,
+      price: parseFloat(formData.price) || 0,
+      rating: formData.rating ? parseFloat(formData.rating) : undefined
+    };
+    onSubmit(submitData);
     setFormData({
       title: '',
       description: '',

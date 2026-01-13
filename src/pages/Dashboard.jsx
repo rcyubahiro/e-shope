@@ -4,6 +4,7 @@ import { useNotification } from '../hooks/useNotification';
 import ProductForm from '../components/ProductForm';
 import DashboardProductList from '../components/DashboardProductList';
 import UserActivityMonitor from '../components/UserActivityMonitor';
+import ConfirmDialog from '../components/ConfirmDialog';
 import { 
   Package, 
   ShoppingCart, 
@@ -26,6 +27,7 @@ export default function Dashboard() {
   const [showForm, setShowForm] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState({ show: false, productId: null, productName: '' });
 
   const handleCreate = async (formData) => {
     setIsSubmitting(true);
@@ -57,13 +59,22 @@ export default function Dashboard() {
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this product?')) {
-      try {
-        await deleteProduct(id);
-        showNotification('Product deleted successfully via API!', 'success');
-      } catch (error) {
-        showNotification('Failed to delete product: ' + error.message, 'error');
-      }
+    const product = products.find(p => p.id === id);
+    setDeleteConfirm({
+      show: true,
+      productId: id,
+      productName: product?.title || 'this product'
+    });
+  };
+
+  const confirmDelete = async () => {
+    try {
+      await deleteProduct(deleteConfirm.productId);
+      showNotification('Product deleted successfully via API!', 'success');
+    } catch (error) {
+      showNotification('Failed to delete product: ' + error.message, 'error');
+    } finally {
+      setDeleteConfirm({ show: false, productId: null, productName: '' });
     }
   };
 
@@ -361,6 +372,16 @@ export default function Dashboard() {
           )}
         </div>
       </div>
+
+      <ConfirmDialog
+        isOpen={deleteConfirm.show}
+        title="Delete Product"
+        message={`Are you sure you want to delete "${deleteConfirm.productName}"? This action cannot be undone.`}
+        confirmText="Delete"
+        cancelText="Cancel"
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteConfirm({ show: false, productId: null, productName: '' })}
+      />
     </div>
   );
 }

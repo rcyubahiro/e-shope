@@ -1,6 +1,6 @@
 import { useNavigate, Link } from 'react-router-dom';
 import { useState } from 'react';
-import axios from 'axios';
+import axios from '../utils/axiosConfig';
 import { useAuth } from '../hooks/useContexts';
 import { useNotification } from '../hooks/useNotification';
 import { LockKeyhole, Check } from 'lucide-react';
